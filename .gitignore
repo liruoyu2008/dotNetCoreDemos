@@ -1,0 +1,11 @@
+﻿################################################################################
+# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
+################################################################################
+
+/MegMeetDemo/bin/Debug/netcoreapp3.1
+/MegMeetDemo/obj/Debug/netcoreapp3.1
+/OpcDemo/bin
+/OpcDemo/obj/x86/Debug/netcoreapp3.1
+/OpcDemo/obj/Debug/netcoreapp3.1
+/MegMeetDemo/obj
+/OpcDemo/obj
