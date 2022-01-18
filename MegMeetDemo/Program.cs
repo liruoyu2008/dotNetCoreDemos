@@ -341,7 +341,7 @@ namespace MegMeetDemo
                 bs.Add(b);
 
                 i += 2;
-                if (i >= data.Length)
+                if (i > data.Length - 2)
                 {
                     break;
                 }
