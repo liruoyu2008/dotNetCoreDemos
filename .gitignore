@@ -11,3 +11,7 @@
 /OpcDemo/obj
 /.vs/Demos/project-colors.json
 /.vs/Demos/v17/.futdcache.v1
+/ModbusDemo/bin/Debug/net6.0
+/ModbusDemo/obj
+/MIDInterpreterDemo/bin/Debug/netcoreapp3.1
+/MIDInterpreterDemo/obj
