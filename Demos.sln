@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpcDemo", "OpcDemo\OpcDemo.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModbusDemo", "ModbusDemo\ModbusDemo.csproj", "{F550E427-6EC5-4D3A-A891-C157FFBAD6D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIDInterpreterDemo", "MIDInterpreterDemo\MIDInterpreterDemo.csproj", "{07553DBF-3165-4868-96ED-13057387190F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MIDInterpreterDemo", "MIDInterpreterDemo\MIDInterpreterDemo.csproj", "{07553DBF-3165-4868-96ED-13057387190F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpectreConsoleDemo", "SpectreConsoleDemo\SpectreConsoleDemo.csproj", "{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,14 @@ Global
 		{07553DBF-3165-4868-96ED-13057387190F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{07553DBF-3165-4868-96ED-13057387190F}.Release|x86.ActiveCfg = Release|Any CPU
 		{07553DBF-3165-4868-96ED-13057387190F}.Release|x86.Build.0 = Release|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Debug|x86.Build.0 = Debug|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Release|x86.ActiveCfg = Release|Any CPU
+		{C6C64809-7A4E-4D1D-B47B-9C3B051758B1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
