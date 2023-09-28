@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Platforms>AnyCPU;x86</Platforms>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +20,24 @@
 
   <ItemGroup>
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.366.38" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RootLink.DC.Common">
+      <HintPath>..\..\common\Common\dll\RootLink.DC.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="RootLink.DC.Kernel">
+      <HintPath>..\..\common\Common\dll\RootLink.DC.Kernel.dll</HintPath>
+    </Reference>
+    <Reference Include="RootLink.DC.Protocol.OpcDaDebug">
+      <HintPath>..\..\common\Common\dll\RootLink.DC.Protocol.OpcDaDebug.dll</HintPath>
+    </Reference>
+    <Reference Include="RootLink.DC.Tools">
+      <HintPath>..\..\common\Common\dll\RootLink.DC.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="RootLink.DC.TraceLog">
+      <HintPath>..\..\common\Common\dll\RootLink.DC.TraceLog.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

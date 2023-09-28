@@ -2,18 +2,10 @@
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
 
-/MegMeetDemo/bin/Debug/netcoreapp3.1
-/MegMeetDemo/obj/Debug/netcoreapp3.1
-/OpcDemo/bin
-/OpcDemo/obj/x86/Debug/netcoreapp3.1
-/OpcDemo/obj/Debug/netcoreapp3.1
-/MegMeetDemo/obj
-/OpcDemo/obj
-/.vs/Demos/project-colors.json
-/.vs/Demos/v17/.futdcache.v1
-/ModbusDemo/bin/Debug/net6.0
-/ModbusDemo/obj
-/MIDInterpreterDemo/bin/Debug/netcoreapp3.1
-/MIDInterpreterDemo/obj
-/SpectreConsoleDemo/bin/Debug/netcoreapp3.1
-/SpectreConsoleDemo/obj
+.vs/
+*.suo
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+packages

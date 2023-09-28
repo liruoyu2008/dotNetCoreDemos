@@ -1,0 +1,52 @@
+{
+	"status": 0,
+	"msg": "OK",
+	"data": {
+		"CutSystemState": {
+			"NcState": {
+				"AxisY": -2664.67512499971,
+				"AxisX": -1267.95625726869,
+				"WorkTimeStr": "00:00:00.000",
+				"DA2": 0,
+				"DA1": 0,
+				"CADHomeRefY": -1095.71326636256,
+				"CADHomeRefX": 1486.51244338779,
+				"CanRestoreFromStop": true,
+				"AlarmCount": 0,
+				"OutportBytes": 0,
+				"InportBytes": 1,
+				"WorkTime": 0,
+				"UcsOrgY": 2664.67512499971,
+				"UcsOrgX": 1392.16467415549,
+				"RunningTimeStr": "1小时45分38秒",
+				"HomeRefY": 898.616,
+				"HomeRefX": 8.001,
+				"WorkSpeed": 0,
+				"CutPercent": 0,
+				"AlarmMsg": "",
+				"IsJogFast": false,
+				"SwitchTableNum": -1,
+				"LaserPower": 3000,
+				"FeedRate": 100,
+				"SysState": 0,
+				"TaskName": "202209101310.CNC"
+			},
+			"DeviceState": {
+				"FocusPos": 4.5,
+				"IsFollowing": false,
+				"PwmFreq": 1000,
+				"IsEmissionOn": false,
+				"GasType": "氧气",
+				"CurrentZ": 0,
+				"CurrentH": 38.184,
+				"GasPressure": 0.8,
+				"IsLaserOn": false,
+				"PwmRatio": 0.1,
+				"IsGasOn": false,
+				"TargetHeight": 0.8,
+				"IsAimingOn": false,
+				"DiodeCurrent": 50
+			}
+		}
+	}
+}

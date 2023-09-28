@@ -1,37 +1,25 @@
 ﻿using log4net;
 using log4net.Config;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MegMeetDemo
 {
     internal class Program
     {
-        // 网络参数
-        static IPAddress _ip;
-        static int _port;
-        static int _portLocal;
-
-        // 是否使用ascii编解码
-        static bool _isASCII = true;
-        static string _modeStr = "ASCII模式";
-
-        // tcp通讯参数
-        static TcpClient _tcpClient;
-        static NetworkStream _tcpStream;
-        static Task _task;
-        static byte[] _buffer = new byte[1024];
+        // 通讯参数
+        static string _ip = "0";
 
         // udp参数
         static UdpClient _udpClient;
-        static IPEndPoint _ipe;
+        static IPEndPoint _remoteEP;
+
+        // 焊接参数
+        static Parameters _params;
 
         // 日志记录器
         static ILog _logger;
@@ -40,32 +28,10 @@ namespace MegMeetDemo
         {
             InitLogger();
 
-            Console.Write("请输入远程主机IP（默认127.0.0.1）:");
-            var str1 = Console.ReadLine();
-            _ip = string.IsNullOrWhiteSpace(str1)
-                ? IPAddress.Parse("127.0.0.1")
-                : IPAddress.Parse(str1);
+            _params = new Parameters();
+            _remoteEP = _ip == "0" ? new IPEndPoint(IPAddress.Any, 0) : new IPEndPoint(IPAddress.Parse(_ip), 0);
+            DoUdpCommunication();
 
-            Console.Write("请输入远程端口号（默认9332）:");
-            var str2 = Console.ReadLine();
-            _port = string.IsNullOrWhiteSpace(str2)
-                ? 9332
-                : int.Parse(str2);
-            Console.Write("请输入本机端口号（默认9331）:");
-            var str3 = Console.ReadLine();
-            _portLocal = string.IsNullOrWhiteSpace(str3)
-                ? 9331
-                : int.Parse(str3);
-            Console.Write("是否将数据转换为ASCII字符，（默认ASCII模式，输入‘n’取消）:");
-            var str4 = Console.ReadLine();
-            _isASCII = str4.Trim().ToLower() != "n"
-                ? true
-                : false;
-            _modeStr = _isASCII ? "ASCII模式" : "字节模式";
-
-            Console.WriteLine();
-
-            DoUdpCommunication(_ip, _port);
         }
 
         /// <summary>
@@ -79,153 +45,38 @@ namespace MegMeetDemo
             _logger = LogManager.GetLogger(LoggerRepository.Name, "default");
         }
 
-
-        #region TCP通讯
-
-        /// <summary>
-        /// 建立一个TCP连接
-        /// </summary>
-        /// <param name="ip"></param>
-        /// <param name="port"></param>
-        private static void DoTcpCommunication(IPAddress ip, int port)
-        {
-            Console.WriteLine("===========  开始 TCP 通讯（输入‘q’或‘Q’退出） ===========");
-
-            _tcpClient = new TcpClient(ip.ToString(), port);
-
-            if (_tcpClient.Connected)
-            {
-                Console.WriteLine("连接成功！");
-
-                _tcpStream = _tcpClient.GetStream();
-                Console.WriteLine("获取网络流成功！");
-            }
-
-            // 开启接受处理线程
-            StartTcpReceiveTask();
-            Console.WriteLine("数据接收线程开启！");
-
-            // 主线程用于发送数据
-            while (true)
-            {
-                Console.WriteLine($"输入需要发送的数据（{_modeStr}）：");
-                var msg = Console.ReadLine();
-                if (msg.ToLower().Trim() == "q")
-                {
-                    _tcpClient.Close();
-                    _tcpClient = null;
-                    break;
-                }
-
-                TcpSend(msg);
-            }
-        }
-
-        /// <summary>
-        /// 接收函数
-        /// </summary>
-        static void StartTcpReceiveTask()
-        {
-            _task = Task.Run(() =>
-            {
-                while (true)
-                {
-                    if (_tcpClient != null)
-                    {
-                        if (_tcpClient.Connected)
-                        {
-                            int len = _tcpStream.Read(_buffer, 0, _buffer.Length);
-                            if (len > 0)
-                            {
-                                // 解码
-                                var msg = _isASCII
-                                ? Encoding.ASCII.GetString(_buffer, 0, _buffer.Length)
-                                : ToByteString(_buffer.Take(len).ToArray());
-
-                                Console.WriteLine($"<<< {msg}");
-                                Log($"<<< {msg}");
-                                Array.Clear(_buffer, 0, _buffer.Length);
-                            }
-                        }
-                        else
-                        {
-                            Thread.Sleep(100);
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            });
-        }
-
-        /// <summary>
-        /// 发送消息
-        /// </summary>
-        /// <param name="msg"></param>
-        static void TcpSend(string msg)
-        {
-            if (_tcpClient != null && _tcpClient.Connected)
-            {
-                // 编码
-                var data = _isASCII
-                    ? Encoding.ASCII.GetBytes(msg, 0, msg.Length)
-                    : FromByteString(msg);
-                _tcpStream.BeginWrite(data, 0, data.Length, new AsyncCallback((iar) =>
-                {
-                    string msg = iar.AsyncState as string;
-                    Console.WriteLine($"   >>> {msg}");
-                    Log($"   >>> {msg}");
-
-                }), msg);
-            }
-        }
-
-        #endregion
-
-
-        #region UDP通讯
-
         /// <summary>
         /// 建立一个Udp通讯
         /// </summary>
-        /// <param name="ip"></param>
-        /// <param name="port"></param>
-        private static void DoUdpCommunication(IPAddress ip, int port)
+        private static void DoUdpCommunication()
         {
             Console.WriteLine("===========  开始 UDP 通讯（输入‘q’或‘Q’退出） ===========");
 
-            var ipeLocal = new IPEndPoint(IPAddress.Parse("127.0.0.1"), _portLocal);
-            _udpClient = new UdpClient(ipeLocal);
-            _ipe = new IPEndPoint(ip, port);
+            // 绑定本地端口
+            _udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, 3005));
 
             // 开启接受处理线程
-            StartUdpReceiveTask();
-            Console.WriteLine("数据接收线程开启！");
+            var task = BeginReceive();
+            Console.WriteLine("开始接受udp报文...");
 
-            // 主线程用于发送数据
+            // 按q键退出
             while (true)
             {
-                Console.WriteLine($"输入需要发送的数据（{_modeStr}）：");
-                var msg = Console.ReadLine();
-                if (msg.ToLower().Trim() == "q")
+                var msg = Console.ReadKey(true);
+                if (msg.Key == ConsoleKey.Q)
                 {
                     _udpClient.Close();
-                    _udpClient = null;
                     break;
                 }
-
-                UdpSend(msg);
             }
         }
 
         /// <summary>
-        /// 接收函数
+        /// 开始接收数据
         /// </summary>
-        static void StartUdpReceiveTask()
+        static Task BeginReceive()
         {
-            _task = Task.Run(() =>
+            return Task.Run(() =>
             {
                 while (true)
                 {
@@ -233,22 +84,16 @@ namespace MegMeetDemo
                     {
                         try
                         {
-                            var data = _udpClient.Receive(ref _ipe);
-                            if (data.Length > 0)
-                            {
-                                // 解码
-                                var msg = _isASCII
-                                ? Encoding.ASCII.GetString(data, 0, data.Length)
-                                : ToByteString(data);
+                            var data = _udpClient.Receive(ref _remoteEP);
 
-                                Console.WriteLine($"<<< {msg}");
-                                Log($"<<< {msg}");
-                                Array.Clear(_buffer, 0, _buffer.Length);
-                            }
+                            // 报文处理
+                            OnReceiveData(data);
                         }
                         catch (Exception ex)
                         {
                             Log("udp异常！", ex);
+                            Console.WriteLine($"发生异常：{ex}");
+                            break;
                         }
                     }
                     else
@@ -260,30 +105,58 @@ namespace MegMeetDemo
         }
 
         /// <summary>
-        /// 发送消息
+        /// 收到数据的处理办法
         /// </summary>
-        /// <param name="msg"></param>
-        static void UdpSend(string msg)
+        /// <param name="frame"></param>
+        private static void OnReceiveData(byte[] frame)
         {
-            if (_udpClient != null)
+            if (frame.Length != 85)
             {
-                // 编码
-                var data = _isASCII
-                    ? Encoding.ASCII.GetBytes(msg, 0, msg.Length)
-                    : FromByteString(msg);
-                _udpClient.BeginSend(data, data.Length, _ipe, new AsyncCallback((iar) =>
-                  {
-                      string msg = iar.AsyncState as string;
-                      Console.WriteLine($"   >>> {msg}");
-                      Log($"   >>> {msg}");
-                  }), msg);
+                Console.WriteLine("报文长度不正确.");
+                return;
+            }
+
+            if (frame[0] != 0x7f || frame[1] != 0x7f || frame[2] != 0x7f || frame[3] != 0x7f
+                || frame[81] != 0x7e || frame[82] != 0x7e || frame[83] != 0x7e || frame[84] != 0x7e)
+            {
+                Console.WriteLine("报文标识不正确.");
+                return;
+            }
+
+            var data1 = frame.Skip(52).Take(8).ToArray();
+            var data2 = frame.Skip(71).Take(8).ToArray();
+
+            if (data1[0] != 0x40 || data2[0] != 0x41)
+            {
+                Console.WriteLine("报文序号不正确.");
+                return;
+            }
+
+            _params.ErrorCode1 = data1[2];
+            _params.ErrorCode2 = data1[3];
+
+            _params.SetCurrent = (ushort)((data1[4] << 8) + data1[5]);
+            _params.SetVoltage = (ushort)((data1[6] << 8) + data1[7]);
+
+            _params.WireSpeed = (ushort)((data2[2] << 8) + data2[3]);
+            _params.Current = (ushort)((data2[4] << 8) + data2[5]);
+            _params.Voltage = (ushort)((data2[6] << 8) + data2[7]);
+
+            var ps = typeof(Parameters).GetProperties();
+            foreach (var p in ps)
+            {
+                Console.WriteLine($"【{p.Name}】-【{p.GetValue(_params)}】");
             }
         }
 
-        #endregion
-
-
-        #region 辅助方法
+        /// <summary>
+        /// 收到数据的处理办法2
+        /// </summary>
+        /// <param name="data"></param>
+        private static void OnReceiveData2(byte[] data)
+        {
+            Console.WriteLine(data.ToHexString());
+        }
 
         /// <summary>
         /// 输出日志
@@ -301,54 +174,5 @@ namespace MegMeetDemo
                 _logger.Error(msg, ex);
             }
         }
-
-        /// <summary>
-        /// 将十六进制字符串转换为所见即所得
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        private static string ToByteString(byte[] bytes)
-        {
-            StringBuilder sb = new StringBuilder();
-            int i = 0;
-            foreach (byte b in bytes)
-            {
-                var ch = b.ToString("X2");
-                sb.Append(ch);
-                i++;
-                if (i % 2 == 0)
-                {
-                    sb.Append(" ");
-                }
-            }
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// 将字符串转换为所见即所得的字节数组
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        private static byte[] FromByteString(string msg)
-        {
-            List<byte> bs = new List<byte>();
-
-            var data = msg.ToLower().Replace("0x", "").Replace(" ", "");
-            int i = 0;
-            while (true)
-            {
-                var b = Convert.ToByte(data.Substring(i, 2), 16);
-                bs.Add(b);
-
-                i += 2;
-                if (i > data.Length - 2)
-                {
-                    break;
-                }
-            }
-            return bs.ToArray();
-        }
-
-        #endregion
     }
 }

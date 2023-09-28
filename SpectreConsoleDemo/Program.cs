@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Spectre.Console;
 
 namespace SpectreConsoleDemo
 {
@@ -12,10 +11,7 @@ namespace SpectreConsoleDemo
     {
         static void Main(string[] args)
         {
-            var c = new CanvasImage("1.jpg");
-            AnsiConsole.Write(c);
-            Console.ReadKey();
+            YouDaoApiService.GetTranslatioAsync("take", "en", "zh").Wait();
         }
-
     }
 }

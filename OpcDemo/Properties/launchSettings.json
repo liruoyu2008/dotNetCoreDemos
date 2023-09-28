@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ConsoleApp1": {
+    "OpcDemo": {
       "commandName": "Project",
       "nativeDebugging": true
     }

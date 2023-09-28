@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Sygole.R2KReader">
+      <HintPath>..\..\..\工作文档\思谷读写器\libs\Sygole.R2KReader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

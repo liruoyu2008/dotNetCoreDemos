@@ -19,16 +19,21 @@ namespace OpcDemo
             client.UserIdentity = new UserIdentity("opcua", "opcua");
             client.ConnectServer("opc.tcp://localhost:49320").Wait();
 
+            var n = new NodeId("模拟器示例", 2);
             var root = new OpcUaItem()
             {
                 Identifier = ObjectIds.ObjectsFolder.Identifier,
                 Namespace = client.Session.NamespaceUris.GetString(ObjectIds.ObjectsFolder.NamespaceIndex)
             };
+            //root = new OpcUaItem()
+            //{
+            //    Identifier = n.Identifier,
+            //    Namespace = "KEPServerEX"
+            //};
 
             // test
-
-            root = FillTree(client, root, true);
-
+            root = FillTree3(client, root, true);
+            var root2 = FillTree2(client, root, true);
 
             // 获取一个地址转换NodeId的示例
             var n1 = GetNodeId(client.Session.NamespaceUris, root[0][1].Address);
@@ -104,7 +109,7 @@ namespace OpcDemo
                 ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
                 IncludeSubtypes = true,
                 NodeClassMask = (uint)(NodeClass.Object | NodeClass.Variable),
-                ResultMask = (uint)BrowseResultMask.All
+                ResultMask = (uint)(BrowseResultMask.All)
             };
             var refs = ClientUtils.Browse(client.Session, nodeToBrowse, false);
 
@@ -120,7 +125,7 @@ namespace OpcDemo
                         DataType = "OBJECT",
                     };
 
-                    // 读取节点的Attribute
+                    // 读取节点的Attribute(主要耗时语句)
                     var attrs = client.ReadNoteAttributes(r.NodeId.ToString());
 
                     // 是否Var节点
@@ -155,6 +160,123 @@ namespace OpcDemo
 
                     // 排除空的非叶子节点
                     if (uaItem2.Children.Count > 0 || varAttr != null)
+                    {
+                        uaItem.Children.Add(uaItem2);
+                        id++;
+                    }
+                }
+            }
+
+            return uaItem;
+        }
+
+        /// <summary>
+        /// 填充节点树的某节点，并返回该节点;可递归.
+        /// 默认只搜索对象和变量节点，且所有变量当作叶子节点，不递归搜索二级变量.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="uaItem"></param>
+        /// <param name="recursive"></param>
+        /// <returns></returns>
+        public static OpcUaItem FillTree2(OpcUaClient client, OpcUaItem uaItem, bool recursive)
+        {
+            // 读取引用
+            var children = client.BrowseNodeReference(new NodeId(uaItem.Identifier, (ushort)client.Session.NamespaceUris.GetIndex(uaItem.Namespace)).ToString());
+
+            if (children != null && children.Length > 0)
+            {
+                var id = 1;
+                foreach (var r in children)
+                {
+                    var uaItem2 = new OpcUaItem()
+                    {
+                        Identifier = r.NodeId.Identifier,
+                        Namespace = client.Session.NamespaceUris.GetString(r.NodeId.NamespaceIndex),
+                        DataType = "OBJECT",
+                    };
+
+                    // 是否Var节点
+                    if (r.NodeClass == NodeClass.Variable)
+                    {
+                        uaItem2.IsVar = true;
+                    }
+
+                    // id赋值
+                    uaItem2.ID = string.IsNullOrWhiteSpace(uaItem.ID)
+                        ? (id).ToString()
+                        : $"{uaItem.ID}_{id}";
+
+                    // 非Var节点则递归
+                    if (uaItem2.IsVar == false && recursive)
+                    {
+                        uaItem2 = FillTree2(client, uaItem2, recursive);
+                    }
+
+                    // 排除空的非叶子节点
+                    if (uaItem2.Children.Count > 0 || uaItem2.IsVar == true)
+                    {
+                        uaItem.Children.Add(uaItem2);
+                        id++;
+                    }
+                }
+            }
+
+            return uaItem;
+        }
+
+        /// <summary>
+        /// 填充节点树的某节点，并返回该节点;可递归.
+        /// 默认只搜索对象和变量节点，且所有变量当作叶子节点，不递归搜索二级变量.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="uaItem"></param>
+        /// <param name="recursive"></param>
+        /// <returns></returns>
+        public static OpcUaItem FillTree3(OpcUaClient client, OpcUaItem uaItem, bool recursive)
+        {
+            // 读取引用
+            var nodeToBrowse = new BrowseDescription()
+            {
+                NodeId = new NodeId(uaItem.Identifier, (ushort)client.Session.NamespaceUris.GetIndex(uaItem.Namespace)),
+                BrowseDirection = BrowseDirection.Forward,
+                ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
+                IncludeSubtypes = true,
+                NodeClassMask = (uint)(NodeClass.Object | NodeClass.Variable),
+                ResultMask = (uint)(BrowseResultMask.All)
+            };
+            var refs = ClientUtils.Browse(client.Session, nodeToBrowse, false);
+
+            if (refs != null)
+            {
+                var id = 1;
+                foreach (var r in refs)
+                {
+                    var uaItem2 = new OpcUaItem()
+                    {
+                        Identifier = r.NodeId.Identifier,
+                        Namespace = client.Session.NamespaceUris.GetString(r.NodeId.NamespaceIndex),
+                        DataType = "OBJECT",
+                    };
+
+                    // 是否Var节点
+                    if (r.NodeClass ==NodeClass.Variable)
+                    {
+                        uaItem2.IsVar = true;
+                    }
+
+                    // id赋值
+                    uaItem2.ID = string.IsNullOrWhiteSpace(uaItem.ID)
+                        ? (id).ToString()
+                        : $"{uaItem.ID}_{id}";
+
+                    // 非Var节点则递归
+                    if (uaItem2.IsVar == false && recursive)
+                    {
+                        uaItem2 = FillTree3(client, uaItem2, recursive);
+                    }
+
+                    // 排除空的非叶子节点
+                    if (uaItem2.Children.Count > 0 || uaItem2.IsVar)
                     {
                         uaItem.Children.Add(uaItem2);
                         id++;
